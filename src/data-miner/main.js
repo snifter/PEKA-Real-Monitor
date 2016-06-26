@@ -1,12 +1,15 @@
-var BollardDataService = require('./services/bollardDataService');
+let BollardRepository = require('./repositories/bollardRepository');
+let BollardDataService = require('./services/bollardDataService');
 
-var bollardDataService = new BollardDataService();
-var promise = bollardDataService.fetchDataFromApi();
-
-promise.then(function(data) {
-  for (var i = 0; i < data.features.length; i++) {
-    console.log(data.features[i].id, data.features[i].properties.stop_name);
-  }
-}).catch(function(e) {
-  console.error(`problem with request: ${e.message}`);
-});
+let bollardRepository = new BollardRepository();
+let bollardDataService = new BollardDataService(bollardRepository);
+bollardDataService
+  .updateData()
+  .catch(function(e) {
+    if (e.message) {
+      console.warn(`Unable to download a stoppoint bollards: ${e.message}`);      
+    } else {
+      console.error(e);
+    }
+    console.warn('If it is first run, a system will not work properly!');
+  });
