@@ -10,8 +10,11 @@
   "keywords": [],
   "author": "Marek Podsiadły <marek@podsiadly.info> (http://podsiadly.info)",
   "license": "GNU AGPLv3",
-  "repository" : { 
-    "type" : "git", 
-    "url" : "https://github.com/snifter/PEKA-Real-Monitor.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/snifter/PEKA-Real-Monitor.git"
+  },
+  "dependencies": {
+    "mongoose": "^4.5.2"
   }
 }
