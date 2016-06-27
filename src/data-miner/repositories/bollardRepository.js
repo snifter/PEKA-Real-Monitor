@@ -12,7 +12,7 @@ class BollardRepository {
       {
         name: String,
         code: String,
-        spatialPosition: [longitude,latitude]
+        position: [longitude,latitude]
       }
     */
     return new Promise((resolve, reject) => {

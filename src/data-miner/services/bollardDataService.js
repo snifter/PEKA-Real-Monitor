@@ -49,7 +49,7 @@ class BollardDataService {
                   this.bollardRepository.insert({
                     name: feature.properties.stop_name,
                     code: feature.id,
-                    spatialPosition: feature.geometry.coordinates
+                    position: feature.geometry.coordinates
                   }).catch(function(e) {
                     reject(e);
                   });
