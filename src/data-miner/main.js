@@ -1,6 +1,10 @@
 let BollardRepository = require('./repositories/bollardRepository');
 let BollardDataService = require('./services/bollardDataService');
 
+let config = require('./config/global');
+let mongoose = require('mongoose');
+mongoose.connect(config.databases.mongodb.url);
+
 let bollardRepository = new BollardRepository();
 let bollardDataService = new BollardDataService(bollardRepository);
 bollardDataService

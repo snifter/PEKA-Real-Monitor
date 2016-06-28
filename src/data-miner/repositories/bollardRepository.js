@@ -1,9 +1,19 @@
+let Bollard = require('./models/bollard');
+
 class BollardRepository {
   
   bollardExist(code) {
     return new Promise((resolve, reject) => {
-      console.log(`bollardExist(${code})`);
-      resolve(false);
+      Bollard.findById(code, function(error, bollard) {
+        if (error) {
+          console.error(error);
+          reject(error);
+        } else {
+          let result = !!bollard;
+          console.log('bollardExist', code, result); 
+          resolve(result);
+        }
+      });
     });
   }
   
@@ -16,8 +26,21 @@ class BollardRepository {
       }
     */
     return new Promise((resolve, reject) => {
-      console.log(`insert({name: '${data.name}', code: '${data.code}'})`);
-      resolve();
+      let bollard = new Bollard({
+        _id: data.code,
+        code: data.code,
+        name: data.name,
+        position: data.position
+      });
+      bollard.save((error) => {
+        if (error) {
+          console.error(error);
+          reject(error);
+        } else {
+          console.log(`bollard ${data.code} saved`);
+          resolve(bollard);
+        }
+      });
     });
   }
 }
