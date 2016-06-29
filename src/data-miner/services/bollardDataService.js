@@ -1,5 +1,5 @@
-var config = require('../config/global');
-var http = require('http');
+let config = require('../config/global');
+let http = require('http');
 
 class BollardDataService {
   
@@ -79,9 +79,9 @@ class BollardDataService {
         });
         
         response.on('end', () => {
-          var data = JSON.parse(responseBody);
+          let data = JSON.parse(responseBody);
           resolve(data);          
-        })
+        });
       });
 
       request.on('error', (e) => {

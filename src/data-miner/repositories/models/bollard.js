@@ -1,7 +1,7 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+let mongoose = require('mongoose');
+let Schema = mongoose.Schema;
 
-var BollardSchema = new Schema({
+let BollardSchema = new Schema({
   _id: {
     type: String,
     required: true,
