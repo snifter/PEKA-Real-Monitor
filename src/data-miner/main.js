@@ -1,6 +1,7 @@
 let BollardRepository = require('./repositories/bollardRepository');
 let BollardDataService = require('./services/bollardDataService');
-let LinesDataService = require('./services/linesDataService');
+let LineDataService = require('./services/lineDataService');
+let LineRepository = require('./repositories/lineRepository');
 
 let config = require('./config/global');
 let mongoose = require('mongoose');
@@ -8,14 +9,15 @@ mongoose.connect(config.databases.mongodb.url);
 
 let bollardRepository = new BollardRepository();
 let bollardDataService = new BollardDataService(bollardRepository);
-let linesDataService = new LinesDataService();
+let lineRepository = new LineRepository();
+let lineDataService = new LineDataService(lineRepository);
 
 let promises = [
   bollardDataService.updateData(),
-  linesDataService.updateDayBusLines(),
-  linesDataService.updateNightBusLines(),
-  linesDataService.updateDayTramLines(),
-  linesDataService.updateNightTramLines()
+  lineDataService.updateDayBusLines(),
+  lineDataService.updateNightBusLines(),
+  lineDataService.updateDayTramLines(),
+  lineDataService.updateNightTramLines()
 ];
 
 Promise.all(promises)

@@ -66,6 +66,8 @@ class BollardDataService extends BaseDataService {
                .then(function() {
                   resolve();          
                });
+      }).catch(function(error) {
+        reject(error);
       });
     });    
   }
