@@ -1,15 +1,17 @@
 let config = require('../config/global');
-let http = require('http');
+let BaseDataService = require('./baseDataService');
 
-class BollardDataService {
+class BollardDataService extends BaseDataService {
   
   constructor(bollardRepository) {
+    super();
     this.bollardRepository = bollardRepository;
   }
   
   updateData() {
     return new Promise((resolve, reject) => {
-      this.fetchDataFromApi().then((data) => {        
+      this.fetchDataFromApi().then((responseBody) => {
+          let data = JSON.parse(responseBody);        
         /*
           response format
 
@@ -66,30 +68,9 @@ class BollardDataService {
       });
     });    
   }
-  
-  fetchDataFromApi() {
-    return new Promise((resolve, reject) => {
-      let request = http.request(config.services.bollardDataService.stopPointBollardsApiUrl, (response) => {
-        response.setEncoding('utf8');
-        
-        let responseBody = '';
-        
-        response.on('data', (chunk) => {
-          responseBody += chunk;    
-        });
-        
-        response.on('end', () => {
-          let data = JSON.parse(responseBody);
-          resolve(data);          
-        });
-      });
 
-      request.on('error', (e) => {
-        reject(e);        
-      });
-
-      request.end();
-    });  
+  getUrl() {
+    return config.services.bollardDataService.stopPointBollardsApiUrl;
   }
 }
 
