@@ -1,10 +1,12 @@
 let http = require('http');
+let https = require('https');
 
 class BaseDataService {
   
   fetchDataFromApi(url) {
+    let client = url.startsWith('https:') ? https : http;
     return new Promise((resolve, reject) => {
-      let request = http.request(url, (response) => {
+      let request = client.request(url, (response) => {
         response.setEncoding('utf8');
         
         let responseBody = '';

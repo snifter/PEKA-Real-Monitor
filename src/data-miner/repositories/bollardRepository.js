@@ -10,7 +10,6 @@ class BollardRepository {
           reject(error);
         } else {
           let result = !!bollard;
-          console.log('bollardExist', code, result); 
           resolve(result);
         }
       });

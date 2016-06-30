@@ -12,7 +12,7 @@ class BollardDataService extends BaseDataService {
     return new Promise((resolve, reject) => {
       let url = config.services.bollardDataService.stopPointBollardsApiUrl;
       this.fetchDataFromApi(url).then((responseBody) => {
-          let data = JSON.parse(responseBody);        
+        let data = JSON.parse(responseBody);        
         /*
           response format
 
@@ -61,7 +61,7 @@ class BollardDataService extends BaseDataService {
                 reject(e);
               });
         });
-        
+        console.log('bollards data retrievied and processing');
         Promise.all(promises)
                .then(function() {
                   resolve();          
