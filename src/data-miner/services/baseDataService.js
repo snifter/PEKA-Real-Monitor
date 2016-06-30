@@ -2,9 +2,8 @@ let http = require('http');
 
 class BaseDataService {
   
-  fetchDataFromApi() {
+  fetchDataFromApi(url) {
     return new Promise((resolve, reject) => {
-      let url = this.getUrl();
       let request = http.request(url, (response) => {
         response.setEncoding('utf8');
         
@@ -25,10 +24,6 @@ class BaseDataService {
 
       request.end();
     });  
-  }
-
-  getUrl() {
-    throw new Error('getUrl method should be overidden in derived class');
   }
 }
 

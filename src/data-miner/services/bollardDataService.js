@@ -10,7 +10,8 @@ class BollardDataService extends BaseDataService {
   
   updateData() {
     return new Promise((resolve, reject) => {
-      this.fetchDataFromApi().then((responseBody) => {
+      let url = config.services.bollardDataService.stopPointBollardsApiUrl;
+      this.fetchDataFromApi(url).then((responseBody) => {
           let data = JSON.parse(responseBody);        
         /*
           response format
@@ -67,10 +68,6 @@ class BollardDataService extends BaseDataService {
                });
       });
     });    
-  }
-
-  getUrl() {
-    return config.services.bollardDataService.stopPointBollardsApiUrl;
   }
 }
 
