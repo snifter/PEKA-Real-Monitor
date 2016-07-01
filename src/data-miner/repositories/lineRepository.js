@@ -33,7 +33,8 @@ class LineRepository {
         _id: data.name,
         name: data.name,
         type: data.type,
-        day: data.day
+        day: data.day,
+        directions: data.directions
       });
       line.save((error) => {
         if (error) {

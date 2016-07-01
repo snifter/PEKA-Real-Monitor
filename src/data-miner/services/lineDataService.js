@@ -41,9 +41,7 @@ class LineDataService extends BaseDataService {
               day: day
             };
           });
-        })/*.then((lines) => {
-          return this.fetchDirections(lines);
-        })*/
+        })
         .then((lines) => {
           let promises = lines.map(this.createPromiseForLine.bind(this));
           return Promise.all(promises);     
@@ -56,32 +54,29 @@ class LineDataService extends BaseDataService {
   }
 
   createPromiseForLine(line) {
-    return this.persistLine(line);
+    return this.fetchDirections(line)
+      .then(this.persistLine.bind(this));
   }
 
-  fetchDirections(lines) {
-    let promises = lines.map((line) => {
-      let url = config.services.linesDataService
-                    .directionsApiUrlFormat.replace('<<line>>', line.name);
-      return this.fetchDataFromApi(url)
-        .then((responseBody) => {
-          let data = this.extractJson(responseBody);
-          if (data.status !== 'ok') {
-            throw Error(`api ${url} responses with status: ${data.status}`);
-          }
+  fetchDirections(line) {
+    let url = config.services.linesDataService
+                  .directionsApiUrlFormat.replace('<<line>>', line.name);
+    return this.fetchDataFromApi(url)
+      .then((responseBody) => {
+        let data = this.extractJson(responseBody);
+        if (data.status !== 'ok') {
+          throw Error(`api ${url} responses with status: ${data.status}`);
+        }
 
-          line.directions = data.relations.map((rel) => {
-            return { 
-              direction: rel.direction,
-              relation: rel.relation
-            };
-          });
+        line.directions = data.relations.map((rel) => {
+          return { 
+            direction: rel.direction,
+            relation: rel.relation
+          };
+        });
 
-           return line;
-        });  
-    });
-
-    return Promise.all(promises);
+        return Promise.resolve(line);
+      });
   }
 
   persistLine(line) {
