@@ -21,7 +21,11 @@ class LineRepository {
       {
         name: String,
         type: String,
-        day: Boolean
+        day: Boolean,
+        directions: [{
+          direction: Number,
+          relation: String
+        }]
       }
     */
     return new Promise((resolve, reject) => {

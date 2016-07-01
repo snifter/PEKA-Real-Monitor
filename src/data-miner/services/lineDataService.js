@@ -27,48 +27,97 @@ class LineDataService extends BaseDataService {
   updateData(lineType, day) {
     return new Promise((resolve, reject) => {
       let url = this.getUrl(lineType, day);
-      this.fetchDataFromApi(url).then((responseBody) => {
-        let beginDataTag = '<ns:return>';
+      this.fetchDataFromApi(url)
+        .then((responseBody) => {
+          let data = this.extractJson(responseBody);
+          if (data.status !== 'ok') {
+            throw Error(`api ${url} responses with status: ${data.status}`);
+          }
+
+          return data.lines.map((line) => {
+            return { 
+              name: line,
+              type: lineType,
+              day: day
+            };
+          });
+        })/*.then((lines) => {
+          return this.fetchDirections(lines);
+        })*/
+        .then((lines) => {
+          this.persistLines(lines)
+            .then(() => {
+              resolve();
+            }).catch((error) => {
+              reject(error);
+            });          
+        }).catch((error) => {
+          reject(error);
+        });
+    });
+  }
+
+  fetchDirections(lines) {
+    let promises = lines.map((line) => {
+      let url = config.services.linesDataService
+                    .directionsApiUrlFormat.replace('<<line>>', line.name);
+      return this.fetchDataFromApi(url)
+        .then((responseBody) => {
+          let data = this.extractJson(responseBody);
+          if (data.status !== 'ok') {
+            throw Error(`api ${url} responses with status: ${data.status}`);
+          }
+
+          line.directions = data.relations.map((rel) => {
+            return { 
+              direction: rel.direction,
+              relation: rel.relation
+            };
+          });
+
+           return line;
+        });  
+    });
+
+    return Promise.all(promises);
+  }
+
+  persistLines(lines) {
+    let error;
+
+    let promises = lines.map((line) => {
+      return this.lineRepository
+          .lineExist(line.name)
+          .then((exist) => {
+            if (!exist) {
+              this.lineRepository
+                .insert(line)
+                .catch((e) => {
+                  error = e;
+                });
+            }
+          }).catch((e) => {
+            error = e;
+          });
+      });
+
+      return Promise.all(promises)
+        .then(() => {
+          if (error) {
+            throw error;
+          }          
+        });
+  }
+
+  extractJson(responseBody) {
+    let beginDataTag = '<ns:return>';
         let endDataTag = '</ns:return>';
         let beginIndex = responseBody.indexOf(beginDataTag) + beginDataTag.length;
         let endIndex = responseBody.indexOf(endDataTag);
 
         let dataString = responseBody.substring(beginIndex, endIndex);
         console.log(dataString);
-        let data = JSON.parse(dataString);
-        if (data.status !== 'ok') {
-          reject(`api ${url} responses with status: ${data.status}`);
-          return;
-        }
-
-        let promises = data.lines.map((line) => {
-          return this.lineRepository
-              .lineExist(line)
-              .then((exist) => {
-                if (!exist) {
-                  this.lineRepository.insert({
-                    name: line,
-                    type: lineType,
-                    day: day
-                  }).catch(function(e) {
-                    reject(e);
-                  });
-                }
-              }).catch(function(e) {
-                reject(e);
-              });
-        });
-
-        console.log(`${lineType} lines data retrievied and processing`, 
-                  'day', day);
-        Promise.all(promises)
-               .then(function() {
-                  resolve();          
-               });
-      }).catch(function(error) {
-        reject(error);
-      });
-    });
+        return JSON.parse(dataString);
   }
 
   getUrl(lineType, day) {
