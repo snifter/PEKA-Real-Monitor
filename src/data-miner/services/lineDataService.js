@@ -45,16 +45,18 @@ class LineDataService extends BaseDataService {
           return this.fetchDirections(lines);
         })*/
         .then((lines) => {
-          this.persistLines(lines)
-            .then(() => {
-              resolve();
-            }).catch((error) => {
-              reject(error);
-            });          
+          let promises = lines.map(this.createPromiseForLine.bind(this));
+          return Promise.all(promises);     
+        }).then(() => {
+          resolve();
         }).catch((error) => {
           reject(error);
         });
     });
+  }
+
+  createPromiseForLine(line) {
+    return this.persistLine(line);
   }
 
   fetchDirections(lines) {
@@ -82,31 +84,16 @@ class LineDataService extends BaseDataService {
     return Promise.all(promises);
   }
 
-  persistLines(lines) {
-    let error;
-
-    let promises = lines.map((line) => {
-      return this.lineRepository
-          .lineExist(line.name)
-          .then((exist) => {
-            if (!exist) {
-              this.lineRepository
-                .insert(line)
-                .catch((e) => {
-                  error = e;
-                });
-            }
-          }).catch((e) => {
-            error = e;
-          });
+  persistLine(line) {
+    return this.lineRepository
+      .lineExist(line.name)
+      .then((exist) => {
+        if (!exist) {
+          return this.lineRepository.insert(line);
+        } else {
+          return Promise.resolve();
+        }
       });
-
-      return Promise.all(promises)
-        .then(() => {
-          if (error) {
-            throw error;
-          }          
-        });
   }
 
   extractJson(responseBody) {
