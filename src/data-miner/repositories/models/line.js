@@ -15,7 +15,7 @@ let LineSchema = new Schema({
   type: {
     type: String,
     required: true,
-    trim: true
+    enum: ['bus', 'tram']
   },
   day: Boolean
 });
