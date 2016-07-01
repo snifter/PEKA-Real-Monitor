@@ -12,20 +12,20 @@ let bollardDataService = new BollardDataService(bollardRepository);
 let lineRepository = new LineRepository();
 let lineDataService = new LineDataService(lineRepository);
 
-let promises = [
-  bollardDataService.updateData(),
-  lineDataService.updateDayBusLines(),
-  lineDataService.updateNightBusLines(),
-  lineDataService.updateDayTramLines(),
-  lineDataService.updateNightTramLines()
-];
-
-Promise.all(promises)
-      .catch(function(e) {
-        if (e.message) {
-          console.warn(`Unable to download a data from api: ${e.message}`);      
-        } else {
-          console.error(e);
-        }
-        console.warn('If it is first run, a system will not work properly!');
-      });
+bollardDataService.updateData()
+  .then(() => {
+    return lineDataService.updateDayBusLines();  
+  }).then(() => {
+    return lineDataService.updateNightBusLines();  
+  }).then(() => {
+    return lineDataService.updateDayTramLines();
+  }).then(() => {
+    return lineDataService.updateNightTramLines(); 
+  }).catch(function(e) {
+    if (e.message) {
+      console.warn(`Unable to download a data from api: ${e.message}`);      
+    } else {
+      console.error(e);
+    }
+    console.warn('If it is first run, a system will not work properly!');
+  });
