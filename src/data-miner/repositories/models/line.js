@@ -17,7 +17,12 @@ let LineSchema = new Schema({
     required: true,
     enum: ['bus', 'tram']
   },
-  day: Boolean
+  day: Boolean,
+  directions: [{
+    direction: { type: Number, required: true },
+    relation: { type: String, required: true, trim: true },
+    bollards: [String]
+  }]
 });
 
 module.exports = mongoose.model('Line', LineSchema);
