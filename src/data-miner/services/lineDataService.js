@@ -26,53 +26,59 @@ class LineDataService extends BaseDataService {
 
   updateData(lineType, day) {
     return new Promise((resolve, reject) => {
-      let url = this.getUrl(lineType, day);
-      this.fetchDataFromApi(url)
-        .then((responseBody) => {
-          let data = this.extractJson(responseBody);
-          if (data.status !== 'ok') {
-            throw Error(`api ${url} responses with status: ${data.status}`);
-          }
-
-          return data.lines.map((line) => {
-            return { 
-              name: line,
-              type: lineType,
-              day: day
-            };
-          });
-        })
-        .then((lines) => {
-          if (!lines.length) {
-            return Promise.resolve();
-          }
-
-
-          let createFunction = (line) => {
-            return () => {
-              return this.createPromiseForLine(line);
-            };
-          };
-
-          /*
-          It would be better, but in environments with small RAM 
-          it exhauts all resoruces and system stops.
-
-          let promises = lines.map(this.createPromiseForLine.bind(this));
-          return Promise.all(promises);
-          */     
-          let promise = this.createPromiseForLine(lines[0]);
-          for (let i = 1; i < lines.length; i++) {
-            let next = createFunction(lines[i]);
-            promise = promise.then(next);
-          }
-          return promise;
-        }).then(() => {
+      this.getLines(lineType, day)
+        .then(this.getDirections.bind(this))
+        .then(() => {
           resolve();
         }).catch((error) => {
           reject(error);
         });
     });
+  }
+
+  getLines(lineType, day) {
+    let url = this.getUrl(lineType, day);
+    return this.fetchDataFromApi(url)
+      .then((responseBody) => {
+        let data = this.extractJson(responseBody);
+        if (data.status !== 'ok') {
+          throw Error(`api ${url} responses with status: ${data.status}`);
+        }
+
+        return data.lines.map((line) => {
+          return { 
+            name: line,
+            type: lineType,
+            day: day
+          };
+        });
+      });
+  }
+
+  getDirections(lines) {
+    if (!lines.length) {
+      return Promise.resolve();
+    }
+
+    let createFunction = (line) => {
+      return () => {
+        return this.createPromiseForLine(line);
+      };
+    };
+
+    /*
+    It would be better, but in environments with small RAM 
+    it exhauts all resoruces and system stops.
+
+    let promises = lines.map(this.createPromiseForLine.bind(this));
+    return Promise.all(promises);
+    */     
+    let promise = this.createPromiseForLine(lines[0]);
+    for (let i = 1; i < lines.length; i++) {
+      let next = createFunction(lines[i]);
+      promise = promise.then(next);
+    }
+    return promise;
   }
 
   createPromiseForLine(line) {
