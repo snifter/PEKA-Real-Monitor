@@ -24,7 +24,8 @@ class LineRepository {
         day: Boolean,
         directions: [{
           direction: Number,
-          relation: String
+          relation: String,
+          bollards: [String]
         }]
       }
     */

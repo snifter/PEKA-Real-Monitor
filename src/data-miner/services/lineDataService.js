@@ -27,6 +27,7 @@ class LineDataService extends BaseDataService {
   updateData(lineType, day) {
     return this.getLines(lineType, day)
                .then(this.getDirections.bind(this))
+               .then(this.getBollards.bind(this))
                .then(this.persistLines.bind(this));
   }
 
@@ -104,6 +105,65 @@ class LineDataService extends BaseDataService {
 
         return Promise.resolve(line);
       });
+  }
+
+  getBollards(lines) {
+    if (!lines.length) {
+      return Promise.resolve([]);
+    }
+
+    let createFunction = (line) => {
+      return () => {
+        return this.fetchBollards(line);
+      };
+    };
+
+    return new Promise((resolve, reject) => {
+      let promise = this.fetchBollards(lines[0]);
+      for (let i = 1; i < lines.length; i++) {
+        let next = createFunction(lines[i]);
+        promise = promise.then(next);
+      }
+
+      promise.then(() => {
+        resolve(lines);
+      }).catch((error) => {
+        reject(error);
+      });
+    });
+  }
+
+  fetchBollards(line) {
+    return new Promise((resolve, reject) => {
+      let promises = line.directions.map((item) => {
+        let url = config.services.linesDataService
+                  .lineBollardsApiUrlFormat
+                  .replace('<<line>>', line.name)
+                  .replace('<<direction>>', item.direction);
+        
+        return this.fetchDataFromApi(url)
+          .then((responseBody) => {
+            let data = this.extractJson(responseBody);
+            if (data.status !== 'ok') {
+              throw Error(`api ${url} responses with status: ${data.status}`);
+            }
+
+            item.bollards = data.stops.map((stop) => {
+              return stop.stop_id;
+            });
+
+            return Promise.resolve(line);
+          });
+      });
+
+      Promise.all(promises)
+             .then(() => {
+               resolve(line);
+             })
+             .catch((error) => {
+               reject(error);
+             });
+    });
   }
 
   persistLines(lines) {
