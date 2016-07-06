@@ -9,9 +9,9 @@ class BollardDataService extends BaseDataService {
   }
   
   updateData() {
-    return new Promise((resolve, reject) => {
-      let url = config.services.bollardDataService.stopPointBollardsApiUrl;
-      this.fetchDataFromApi(url).then((responseBody) => {
+    let url = config.services.bollardDataService.stopPointBollardsApiUrl;
+    return this.fetchDataFromApi(url)
+      .then((responseBody) => {
         let data = JSON.parse(responseBody);        
         /*
           response format
@@ -41,35 +41,26 @@ class BollardDataService extends BaseDataService {
           }
         */
         if (!data.features.length) {
-          reject(Error('No bollard in data!'));
-          return;
+          throw Error('No bollard in data!');
         }
         let promises = data.features.map((feature) => {
           return this.bollardRepository
-              .bollardExist(feature.id)
-              .then((exist) => {
-                if (!exist) {
-                  this.bollardRepository.insert({
-                    name: feature.properties.stop_name,
-                    code: feature.id,
-                    position: feature.geometry.coordinates
-                  }).catch(function(e) {
-                    reject(e);
-                  });
-                }
-              }).catch(function(e) {
-                reject(e);
-              });
+            .bollardExist(feature.id)
+            .then((exist) => {
+              if (!exist) {
+                return this.bollardRepository.insert({
+                  name: feature.properties.stop_name,
+                  code: feature.id,
+                  position: feature.geometry.coordinates
+                });
+              } else {
+                return Promise.resolve();
+              }
+            });
         });
         console.log('bollards data retrievied and processing');
-        Promise.all(promises)
-               .then(function() {
-                  resolve();          
-               });
-      }).catch(function(error) {
-        reject(error);
+        return Promise.all(promises);
       });
-    });    
   }
 }
 

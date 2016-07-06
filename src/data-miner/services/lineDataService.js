@@ -25,15 +25,8 @@ class LineDataService extends BaseDataService {
   }
 
   updateData(lineType, day) {
-    return new Promise((resolve, reject) => {
-      this.getLines(lineType, day)
-        .then(this.getDirections.bind(this))
-        .then(() => {
-          resolve();
-        }).catch((error) => {
-          reject(error);
-        });
-    });
+    return this.getLines(lineType, day)
+               .then(this.getDirections.bind(this));
   }
 
   getLines(lineType, day) {
