@@ -26,7 +26,8 @@ class LineDataService extends BaseDataService {
 
   updateData(lineType, day) {
     return this.getLines(lineType, day)
-               .then(this.getDirections.bind(this));
+               .then(this.getDirections.bind(this))
+               .then(this.persistLines.bind(this));
   }
 
   getLines(lineType, day) {
@@ -50,33 +51,38 @@ class LineDataService extends BaseDataService {
 
   getDirections(lines) {
     if (!lines.length) {
-      return Promise.resolve();
+      return Promise.resolve([]);
     }
-
-    let createFunction = (line) => {
-      return () => {
-        return this.createPromiseForLine(line);
-      };
-    };
 
     /*
     It would be better, but in environments with small RAM 
     it exhauts all resoruces and system stops.
 
-    let promises = lines.map(this.createPromiseForLine.bind(this));
+    let promises = lines.map(this.fetchDirections.bind(this));
     return Promise.all(promises);
-    */     
-    let promise = this.createPromiseForLine(lines[0]);
-    for (let i = 1; i < lines.length; i++) {
-      let next = createFunction(lines[i]);
-      promise = promise.then(next);
-    }
-    return promise;
-  }
 
-  createPromiseForLine(line) {
-    return this.fetchDirections(line)
-      .then(this.persistLine.bind(this));
+    so workaround is:
+    */
+
+    let createFunction = (line) => {
+      return () => {
+        return this.fetchDirections(line);
+      };
+    };
+
+    return new Promise((resolve, reject) => {
+      let promise = this.fetchDirections(lines[0]);
+      for (let i = 1; i < lines.length; i++) {
+        let next = createFunction(lines[i]);
+        promise = promise.then(next);
+      }
+
+      promise.then(() => {
+        resolve(lines);
+      }).catch((error) => {
+        reject(error);
+      });
+    });
   }
 
   fetchDirections(line) {
@@ -100,16 +106,20 @@ class LineDataService extends BaseDataService {
       });
   }
 
-  persistLine(line) {
-    return this.lineRepository
-      .lineExist(line.name)
-      .then((exist) => {
-        if (!exist) {
-          return this.lineRepository.insert(line);
-        } else {
-          return Promise.resolve();
-        }
-      });
+  persistLines(lines) {
+    let promises = lines.map((line) => {
+      return this.lineRepository
+        .lineExist(line.name)
+        .then((exist) => {
+          if (!exist) {
+            return this.lineRepository.insert(line);
+          } else {
+            return Promise.resolve();
+          }
+        });
+    });
+
+    return Promise.all(promises);
   }
 
   extractJson(responseBody) {
