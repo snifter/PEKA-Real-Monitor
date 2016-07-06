@@ -43,8 +43,30 @@ class LineDataService extends BaseDataService {
           });
         })
         .then((lines) => {
+          if (!lines.length) {
+            return Promise.resolve();
+          }
+
+
+          let createFunction = (line) => {
+            return () => {
+              return this.createPromiseForLine(line);
+            };
+          };
+
+          /*
+          It would be better, but in environments with small RAM 
+          it exhauts all resoruces and system stops.
+
           let promises = lines.map(this.createPromiseForLine.bind(this));
-          return Promise.all(promises);     
+          return Promise.all(promises);
+          */     
+          let promise = this.createPromiseForLine(lines[0]);
+          for (let i = 1; i < lines.length; i++) {
+            let next = createFunction(lines[i]);
+            promise = promise.then(next);
+          }
+          return promise;
         }).then(() => {
           resolve();
         }).catch((error) => {
