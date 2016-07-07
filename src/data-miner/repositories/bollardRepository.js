@@ -1,7 +1,7 @@
 let Bollard = require('./models/bollard');
 
 class BollardRepository {
-  
+
   bollardExist(code) {
     return new Promise((resolve, reject) => {
       Bollard.findById(code, function(error, bollard) {
@@ -15,7 +15,7 @@ class BollardRepository {
       });
     });
   }
-  
+
   insert(data) {
     /*
       {
@@ -29,7 +29,10 @@ class BollardRepository {
         _id: data.code,
         code: data.code,
         name: data.name,
-        position: data.position
+        position: {
+          type: 'Point',
+          coordinates: data.position
+        }
       });
       bollard.save((error) => {
         if (error) {

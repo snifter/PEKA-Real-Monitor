@@ -3,21 +3,23 @@ let Schema = mongoose.Schema;
 
 let bollardSchema = new Schema({
   _id: {
-    type: String,
+    $type: String,
     required: true,
     trim: true
   },
   name: {
-    type: String,
+    $type: String,
     required: true,
     trim: true
   },
   code: {
-    type: String,
+    $type: String,
     required: true,
     trim: true
   },
-  position: [Number]
+  position: { type: String, coordinates: [Number] }
+}, { 
+  typeKey: '$type' 
 });
 
 module.exports = mongoose.model('Bollard', bollardSchema);
