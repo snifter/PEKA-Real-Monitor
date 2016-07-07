@@ -1,7 +1,15 @@
 let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 
-let LineSchema = new Schema({
+let lineDirectionSchema = new Schema({
+  direction: { type: Number, required: true },
+  relation: { type: String, required: true, trim: true },
+  bollards: [String]
+}, { 
+  _id: false 
+});
+
+let lineSchema = new Schema({
   _id: {
     type: String,
     required: true,
@@ -18,11 +26,7 @@ let LineSchema = new Schema({
     enum: ['bus', 'tram']
   },
   day: Boolean,
-  directions: [{
-    direction: { type: Number, required: true },
-    relation: { type: String, required: true, trim: true },
-    bollards: [String]
-  }]
+  directions: [lineDirectionSchema]
 });
 
-module.exports = mongoose.model('Line', LineSchema);
+module.exports = mongoose.model('Line', lineSchema);

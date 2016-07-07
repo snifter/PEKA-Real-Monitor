@@ -1,7 +1,7 @@
 let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 
-let BollardSchema = new Schema({
+let bollardSchema = new Schema({
   _id: {
     type: String,
     required: true,
@@ -20,4 +20,4 @@ let BollardSchema = new Schema({
   position: [Number]
 });
 
-module.exports = mongoose.model('Bollard', BollardSchema);
+module.exports = mongoose.model('Bollard', bollardSchema);
