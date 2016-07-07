@@ -4,7 +4,7 @@ let Schema = mongoose.Schema;
 let lineDirectionSchema = new Schema({
   direction: { type: Number, required: true },
   relation: { type: String, required: true, trim: true },
-  bollards: [String]
+  bollards: [{ type: String, ref: 'Bollard' }]
 }, { 
   _id: false 
 });
