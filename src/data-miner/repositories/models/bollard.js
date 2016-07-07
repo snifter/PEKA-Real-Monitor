@@ -18,8 +18,10 @@ let bollardSchema = new Schema({
     trim: true
   },
   position: { type: String, coordinates: [Number] }
-}, { 
-  typeKey: '$type' 
+}, {
+  typeKey: '$type'
 });
+
+bollardSchema.index({ position: '2dsphere' });
 
 module.exports = mongoose.model('Bollard', bollardSchema);
