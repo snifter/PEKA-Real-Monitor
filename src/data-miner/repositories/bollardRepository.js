@@ -45,6 +45,10 @@ class BollardRepository {
       });
     });
   }
+
+  getAllBollardCodes() {
+    return Bollard.find().select('code');
+  }
 }
 
 module.exports = BollardRepository;
