@@ -19,7 +19,7 @@ let timetableSchema = new Schema({
     required: true,
     trim: true
   },
-  departureTime: {
+  departure: {
     type: Date,
     required: true
   }
@@ -28,7 +28,8 @@ let timetableSchema = new Schema({
 timetableSchema.index({
   bollard: 1,
   line: 1,
-  departureTime: -1
+  relation: 1,
+  departure: -1
 });
 
 module.exports = mongoose.model('Timetable', timetableSchema);
