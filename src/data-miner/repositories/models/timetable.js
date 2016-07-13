@@ -14,6 +14,11 @@ let timetableSchema = new Schema({
     trim: true,
     ref: 'Line'
   },
+  relation: {
+    type: String,
+    required: true,
+    trim: true
+  },
   departureTime: {
     type: Date,
     required: true
