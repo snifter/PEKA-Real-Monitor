@@ -3,6 +3,8 @@ let BollardDataService = require('./services/bollardDataService');
 let LineDataService = require('./services/lineDataService');
 let LineRepository = require('./repositories/lineRepository');
 let TimetableDataService = require('./services/timetableDataService');
+let moment = require('moment');
+moment.locale('pl');
 
 let config = require('./config/global');
 let mongoose = require('mongoose');
