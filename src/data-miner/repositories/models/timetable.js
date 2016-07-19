@@ -34,7 +34,7 @@ timetableSchema.index({
 timetableSchema.index({
   departure: 1
 }, {
-  expireAfterSeconds: 60 * 60 * 24 * 3
+  expireAfterSeconds: 60 * 60 * 24
 });
 
 module.exports = mongoose.model('Timetable', timetableSchema);
