@@ -26,9 +26,22 @@ class LineDataService extends BaseDataService {
 
   updateData(lineType, day) {
     return this.getLines(lineType, day)
-               .then(this.getDirections.bind(this))
-               .then(this.getBollards.bind(this))
-               .then(this.persistLines.bind(this));
+               .then((lines) => {
+                 let promise = Promise.resolve();
+                 for (let line of lines) {
+                   /*jshint -W083 */
+                   promise = promise.then(() => {
+                   /*jshint +W083 */
+                     return this.fetchDirections(line);
+                   }).then((item) => {
+                     return this.fetchBollards(item);
+                   }).then((item) => {
+                     return this.persistLine(item);
+                   });
+                 }
+
+                 return promise;
+               });
   }
 
   getLines(lineType, day) {
@@ -41,49 +54,13 @@ class LineDataService extends BaseDataService {
         }
 
         return data.lines.map((line) => {
-          return { 
+          return {
             name: line,
             type: lineType,
             day: day
           };
         });
       });
-  }
-
-  getDirections(lines) {
-    if (!lines.length) {
-      return Promise.resolve([]);
-    }
-
-    /*
-    It would be better, but in environments with small RAM 
-    it exhauts all resoruces and system stops.
-
-    let promises = lines.map(this.fetchDirections.bind(this));
-    return Promise.all(promises);
-
-    so workaround is:
-    */
-
-    let createFunction = (line) => {
-      return () => {
-        return this.fetchDirections(line);
-      };
-    };
-
-    return new Promise((resolve, reject) => {
-      let promise = this.fetchDirections(lines[0]);
-      for (let i = 1; i < lines.length; i++) {
-        let next = createFunction(lines[i]);
-        promise = promise.then(next);
-      }
-
-      promise.then(() => {
-        resolve(lines);
-      }).catch((error) => {
-        reject(error);
-      });
-    });
   }
 
   fetchDirections(line) {
@@ -97,7 +74,7 @@ class LineDataService extends BaseDataService {
         }
 
         line.directions = data.relations.map((rel) => {
-          return { 
+          return {
             direction: rel.direction,
             relation: rel.relation
           };
@@ -107,68 +84,33 @@ class LineDataService extends BaseDataService {
       });
   }
 
-  getBollards(lines) {
-    if (!lines.length) {
-      return Promise.resolve([]);
-    }
-
-    let createFunction = (line) => {
-      return () => {
-        return this.fetchBollards(line);
-      };
-    };
-
-    return new Promise((resolve, reject) => {
-      let promise = this.fetchBollards(lines[0]);
-      for (let i = 1; i < lines.length; i++) {
-        let next = createFunction(lines[i]);
-        promise = promise.then(next);
-      }
-
-      promise.then(() => {
-        resolve(lines);
-      }).catch((error) => {
-        reject(error);
-      });
-    });
-  }
-
   fetchBollards(line) {
-    return new Promise((resolve, reject) => {
-      let promises = line.directions.map((item) => {
-        let url = config.services.linesDataService
-                  .lineBollardsApiUrlFormat
-                  .replace('<<line>>', line.name)
-                  .replace('<<direction>>', item.direction);
-        
-        return this.fetchDataFromApi(url)
-          .then((responseBody) => {
-            let data = this.extractJson(responseBody);
-            if (data.status !== 'ok') {
-              throw Error(`api ${url} responses with status: ${data.status}`);
-            }
+    let promises = line.directions.map((item) => {
+      let url = config.services.linesDataService
+                .lineBollardsApiUrlFormat
+                .replace('<<line>>', line.name)
+                .replace('<<direction>>', item.direction);
 
-            item.bollards = data.stops.map((stop) => {
-              return stop.stop_id;
-            });
+      return this.fetchDataFromApi(url)
+        .then((responseBody) => {
+          let data = this.extractJson(responseBody);
+          if (data.status !== 'ok') {
+            throw Error(`api ${url} responses with status: ${data.status}`);
+          }
 
-            return Promise.resolve(line);
+          item.bollards = data.stops.map((stop) => {
+            return stop.stop_id;
           });
-      });
 
-      Promise.all(promises)
-             .then(() => {
-               resolve(line);
-             })
-             .catch((error) => {
-               reject(error);
-             });
+          return Promise.resolve(line);
+        });
     });
+
+    return Promise.all(promises);
   }
 
-  persistLines(lines) {
-    let promises = lines.map((line) => {
-      return this.lineRepository
+  persistLine(line) {
+    return this.lineRepository
         .lineExist(line.name)
         .then((exist) => {
           if (!exist) {
@@ -177,9 +119,6 @@ class LineDataService extends BaseDataService {
             return Promise.resolve();
           }
         });
-    });
-
-    return Promise.all(promises);
   }
 
   extractJson(responseBody) {
