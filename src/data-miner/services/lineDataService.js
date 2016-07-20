@@ -91,30 +91,32 @@ class LineDataService extends BaseDataService {
   fetchBollards(line) {
     console.log('fetchBollards', line);
 
-    let promises = line.directions.map((item) => {
-      let url = config.services.linesDataService
-                .lineBollardsApiUrlFormat
-                .replace('<<line>>', line.name)
-                .replace('<<direction>>', item.direction);
+    let promise = Promise.resolve();
+    for (let item of line.directions) {
+      /*jshint -W083 */
+      promise = promise.then(() => {
+      /*jshint +W083 */
+        let url = config.services.linesDataService
+                  .lineBollardsApiUrlFormat
+                  .replace('<<line>>', line.name)
+                  .replace('<<direction>>', item.direction);
+        return this.fetchDataFromApi(url)
+            .then((responseBody) => {
+              let data = this.extractJson(responseBody);
+              if (data.status !== 'ok') {
+                throw Error(`api ${url} responses with status: ${data.status}`);
+              }
 
-      return this.fetchDataFromApi(url)
-        .then((responseBody) => {
-          let data = this.extractJson(responseBody);
-          if (data.status !== 'ok') {
-            throw Error(`api ${url} responses with status: ${data.status}`);
-          }
+              item.bollards = data.stops.map((stop) => {
+                return stop.stop_id;
+              });
 
-          item.bollards = data.stops.map((stop) => {
-            return stop.stop_id;
-          });
+              return Promise.resolve(line);
+            });
+      });
+    }
 
-          return Promise.resolve(line);
-        });
-    });
-
-    return Promise.all(promises).then(() => {
-      return line;
-    });
+    return promise;
   }
 
   persistLine(line) {
