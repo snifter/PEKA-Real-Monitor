@@ -4,13 +4,14 @@ let https = require('https');
 class BaseDataService {
 
   fetchDataFromApi(url) {
-    console.log('fetchDataFromApi', url);
 
     let client = url.startsWith('https:') ? https : http;
     return new Promise((resolve, reject) => {
       let retryLimit = 10;
       let retry = 0;
       let makeRequest = () => {
+        console.log('fetchDataFromApi', url);
+
         let request = client.request(url, (response) => {
           response.setEncoding('utf8');
 
