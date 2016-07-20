@@ -45,6 +45,8 @@ class LineDataService extends BaseDataService {
   }
 
   getLines(lineType, day) {
+    console.log('getLines', lineType, day);
+
     let url = this.getUrl(lineType, day);
     return this.fetchDataFromApi(url)
       .then((responseBody) => {
@@ -64,6 +66,8 @@ class LineDataService extends BaseDataService {
   }
 
   fetchDirections(line) {
+    console.log('fetchDirections', line);
+
     let url = config.services.linesDataService
                   .directionsApiUrlFormat.replace('<<line>>', line.name);
     return this.fetchDataFromApi(url)
@@ -85,6 +89,8 @@ class LineDataService extends BaseDataService {
   }
 
   fetchBollards(line) {
+    console.log('fetchBollards', line);
+
     let promises = line.directions.map((item) => {
       let url = config.services.linesDataService
                 .lineBollardsApiUrlFormat
@@ -106,10 +112,14 @@ class LineDataService extends BaseDataService {
         });
     });
 
-    return Promise.all(promises);
+    return Promise.all(promises).then(() => {
+      return line;
+    });
   }
 
   persistLine(line) {
+    console.log('persistLine', line);
+
     return this.lineRepository
         .lineExist(line.name)
         .then((exist) => {
