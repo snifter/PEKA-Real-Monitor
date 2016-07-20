@@ -14,29 +14,13 @@ class TimetableDataService extends BaseDataService {
     return this.bollardRepository
               .getAllBollardCodes()
               .then((bollards) => {
-                const chunkSize = 20;
-                let chunks = [];
-                while (bollards.length > 0) {
-                  let temp = bollards.splice(0, chunkSize);
-                  let codes = temp.map((bollard) => {
-                    return bollard.code;
-                  });
-                  chunks.push(codes);
-                }
-
-                return chunks;
-              }).then((chunks) => {
-                let createFunction = (chunk) => {
-                  return () => {
-                    return Promise.all(chunk.map((code) => {
-                      return this.getPromiseForCode(code);
-                    }));
-                  };
-                };
-
                 let promise = Promise.resolve();
-                for(let chunk of chunks) {
-                  promise = promise.then(createFunction(chunk));
+                for(let bollard of bollards) {
+                  /*jshint -W083 */
+                  promise = promise.then(() => {
+                  /*jshint +W083 */
+                    return this.getPromiseForCode(bollard.code);
+                  });
                 }
 
                 return promise.then(() => {
